@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carceglia Team Pretorianos | Gestión Integral BJJ</title>
+    <!-- Tailwind CSS vía CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col">
+    <!-- Contenedor Principal -->
+    <main class="max-w-7xl mx-auto p-4 md:p-8 flex-grow w-full">
+      <!-- Título Principal -->
+      <header class="mb-6 text-center border-b border-slate-800 pb-4">
+        <h1
+          class="text-3xl font-extrabold tracking-wider text-amber-500 uppercase"
+        >
+          Carceglia Team Pretorianos
+        </h1>
+        <p class="text-slate-400 mt-1">
+          Sistema de Gestión Integral, Finanzas y Asistencias - BJJ
+        </p>
+      </header>
+
+      <!-- Pestañas de Navegación (Tabs) -->
+      <nav
+        class="flex flex-wrap justify-center gap-2 mb-8 bg-slate-800/60 p-2 rounded-xl border border-slate-700"
+      >
+        <button
+          data-tab="dashboard"
+          class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition bg-amber-600 text-slate-950 shadow-md"
+        >
+          📊 Dashboard & Finanzas
+        </button>
+        <button
+          data-tab="inscripcion"
+          class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition text-slate-300 hover:bg-slate-700 hover:text-white"
+        >
+          📝 Inscribir Alumno
+        </button>
+        <button
+          data-tab="nomina"
+          class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition text-slate-300 hover:bg-slate-700 hover:text-white"
+        >
+          👥 Nómina y Perfiles
+        </button>
+        <button
+          data-tab="asistencias"
+          class="tab-btn px-4 py-2 rounded-lg font-medium text-sm transition text-slate-300 hover:bg-slate-700 hover:text-white"
+        >
+          📅 Control de Asistencias
+        </button>
+      </nav>
+
+      <!-- ========================================== -->
+      <!-- VISTA 1: DASHBOARD & FINANZAS (Mensual)    -->
+      <!-- ========================================== -->
+      <section id="view-dashboard" class="space-y-8 view-section">
+        <!-- Selector de Mes Global para Finanzas -->
+        <div
+          class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md"
+        >
+          <div>
+            <h2 class="text-lg font-semibold text-white">
+              Panel Financiero Mensual
+            </h2>
+            <p class="text-xs text-slate-400">
+              Selecciona el mes para calcular la recaudación y pagos a Carlos.
+            </p>
+          </div>
+          <div>
+            <input
+              type="month"
+              id="selector-mes-finanzas"
+              class="px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white font-medium focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+        </div>
+
+        <!-- Tarjetas de Estadísticas Globales -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div
+            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
+              >Total Alumnos</span
+            >
+            <span id="stat-total" class="text-3xl font-bold text-white mt-2"
+              >0</span
+            >
+          </div>
+          <div
+            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
+              >Activos / A prueba</span
+            >
+            <span
+              id="stat-activos"
+              class="text-3xl font-bold text-emerald-400 mt-2"
+              >0</span
+            >
+          </div>
+          <div
+            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
+              >Cuotas al Día (Mes)</span
+            >
+            <span id="stat-cuotas" class="text-3xl font-bold text-blue-400 mt-2"
+              >0</span
+            >
+          </div>
+          <div
+            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
+          >
+            <span
+              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
+              >Inactivos / Bajas</span
+            >
+            <span
+              id="stat-inactivos"
+              class="text-3xl font-bold text-amber-400 mt-2"
+              >0</span
+            >
+          </div>
+        </div>
+
+        <!-- Calculadora Financiera (Carlos vs Vos) -->
+        <div
+          class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md"
+        >
+          <h2
+            class="text-xl font-semibold text-white mb-4 border-b border-slate-700 pb-2"
+          >
+            Desglose Financiero del Mes Seleccionado
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Recaudación Bruta -->
+            <div class="bg-slate-900 p-5 rounded-lg border border-slate-700">
+              <span class="text-xs text-slate-400 uppercase tracking-wider"
+                >Recaudación Bruta (Cuotas Cobradas)</span
+              >
+              <p
+                id="fin-recaudacion"
+                class="text-2xl font-bold text-white mt-1"
+              >
+                $0
+              </p>
+              <span class="text-xs text-slate-500 mt-2 block"
+                >Basado en cuotas 'Al día' ($45.000) o 'Parcial' ($22.500)</span
+              >
+            </div>
+            <!-- Pago a Carlos (Espacio + Servicios) -->
+            <div class="bg-slate-900 p-5 rounded-lg border border-slate-700">
+              <span class="text-xs text-slate-400 uppercase tracking-wider"
+                >A Pagar a Carlos (Alquiler + Servicios)</span
+              >
+              <p id="fin-carlos" class="text-2xl font-bold text-amber-400 mt-1">
+                $0
+              </p>
+              <span class="text-xs text-slate-500 mt-2 block"
+                >($15.000 por alumno activo + $30.000 servicios fijos)</span
+              >
+            </div>
+            <!-- Tu Ganancia Neta -->
+            <div class="bg-slate-900 p-5 rounded-lg border border-slate-700">
+              <span class="text-xs text-slate-400 uppercase tracking-wider"
+                >Tu Ganancia Neta Mensual</span
+              >
+              <p
+                id="fin-ganancia"
+                class="text-2xl font-bold text-emerald-400 mt-1"
+              >
+                $0
+              </p>
+              <span class="text-xs text-slate-500 mt-2 block"
+                >Recaudación real menos compromisos con Carlos</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VISTA 2: INSCRIPCIÓN DE ALUMNOS           -->
+      <!-- ========================================== -->
+      <section id="view-inscripcion" class="space-y-8 view-section hidden">
+        <div
+          class="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-2xl mx-auto shadow-md"
+        >
+          <h2
+            class="text-xl font-semibold text-white mb-4 border-b border-slate-700 pb-2"
+          >
+            Registrar Nuevo Alumno
+          </h2>
+
+          <form id="form-alumno" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1"
+                  >Nombre y Apellido</label
+                >
+                <input
+                  type="text"
+                  id="nombre"
+                  required
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+                  placeholder="Ej. Juan Pérez"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1"
+                  >Teléfono / WhatsApp</label
+                >
+                <input
+                  type="tel"
+                  id="telefono"
+                  required
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+                  placeholder="Ej. 2942..."
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1"
+                  >Fecha de Nacimiento</label
+                >
+                <input
+                  type="date"
+                  id="fecha-nacimiento"
+                  required
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1"
+                  >Cinturón</label
+                >
+                <select
+                  id="cinturon"
+                  required
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="Blanco">Blanco</option>
+                  <option value="Azul">Azul</option>
+                  <option value="Morado">Morado</option>
+                  <option value="Marrón">Marrón</option>
+                  <option value="Negro">Negro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1"
+                  >Grados (Tiras)</label
+                >
+                <select
+                  id="grados"
+                  required
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="0">0 Grados</option>
+                  <option value="1">1 Grado</option>
+                  <option value="2">2 Grados</option>
+                  <option value="3">3 Grados</option>
+                  <option value="4">4 Grados</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1"
+                  >Condición Alumno</label
+                >
+                <select
+                  id="estado"
+                  required
+                  class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="Activo">Activo</option>
+                  <option value="A prueba">A prueba</option>
+                  <option value="Inactivo">Inactivo</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1"
+                >Observaciones / Seminarios / Torneos</label
+              >
+              <textarea
+                id="observaciones"
+                rows="2"
+                class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+                placeholder="Ej. Torneo regional, seminario de defensa personal..."
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold py-2.5 px-4 rounded-lg transition shadow-md"
+            >
+              Guardar Alumno en el Dojo
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VISTA 3: NÓMINA GENERAL Y PERFILES          -->
+      <!-- ========================================== -->
+      <section id="view-nomina" class="space-y-8 view-section hidden">
+        <div
+          class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md"
+        >
+          <div
+            class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 border-b border-slate-700 pb-4"
+          >
+            <h2 class="text-xl font-semibold text-white">
+              Nómina General y Control de Cuotas
+            </h2>
+            <div class="flex items-center space-x-2">
+              <label class="text-xs text-slate-400">Mes a gestionar:</label>
+              <input
+                type="month"
+                id="selector-mes-nomina"
+                class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-700 text-slate-400 text-sm">
+                  <th class="py-3 px-3 font-medium">Alumno / Contacto</th>
+                  <th class="py-3 px-3 font-medium">Cinturón / Grados</th>
+                  <th class="py-3 px-3 font-medium">Condición</th>
+                  <th class="py-3 px-3 font-medium">
+                    Cuota (Mes Seleccionado)
+                  </th>
+                  <th class="py-3 px-3 font-medium">Asistencias</th>
+                  <th class="py-3 px-3 font-medium text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody
+                id="tabla-alumnos"
+                class="divide-y divide-slate-700/50 text-sm"
+              >
+                <tr id="fila-vacia">
+                  <td colspan="6" class="py-8 text-center text-slate-500">
+                    No hay alumnos registrados en el sistema.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- VISTA 4: CONTROL DE ASISTENCIAS POR TURNO   -->
+      <!-- ========================================== -->
+      <section id="view-asistencias" class="space-y-8 view-section hidden">
+        <div
+          class="bg-slate-800 p-6 rounded-xl border border-slate-700 max-w-4xl mx-auto shadow-md"
+        >
+          <h2
+            class="text-xl font-semibold text-white mb-4 border-b border-slate-700 pb-2"
+          >
+            Registro de Asistencia por Turno
+          </h2>
+
+          <div
+            class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900 p-4 rounded-lg border border-slate-700"
+          >
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1"
+                >Fecha de Clase</label
+              >
+              <input
+                type="date"
+                id="input-fecha-asistencia"
+                class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1"
+                >Turno / Horario</label
+              >
+              <select
+                id="input-turno-asistencia"
+                class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="Turno Mañana">Turno Mañana</option>
+                <option value="Turno Tarde">Turno Tarde</option>
+                <option value="Turno Noche">Turno Noche</option>
+                <option value="Competencia / Especial">
+                  Competencia / Especial
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-700 text-slate-400 text-sm">
+                  <th class="py-3 px-3 font-medium w-16 text-center">
+                    Presente
+                  </th>
+                  <th class="py-3 px-3 font-medium">Alumno</th>
+                  <th class="py-3 px-3 font-medium">Cinturón</th>
+                  <th class="py-3 px-3 font-medium text-center">
+                    Total Histórico
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                id="tabla-asistencia-diaria"
+                class="divide-y divide-slate-700/50 text-sm"
+              >
+                <tr>
+                  <td colspan="4" class="py-8 text-center text-slate-500">
+                    No hay alumnos activos para pasar lista.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- MODAL DE PERFIL INDIVIDUAL (Oculto por defecto) -->
+    <div
+      id="modal-perfil"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-slate-800 border border-slate-700 rounded-xl max-w-lg w-full p-6 shadow-2xl relative"
+      >
+        <button
+          id="cerrar-modal"
+          class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold"
+        >
+          &times;
+        </button>
+        <div id="contenido-perfil" class="space-y-4">
+          <!-- Se inyectará dinámicamente con JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Enlace al archivo principal de JavaScript -->
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
