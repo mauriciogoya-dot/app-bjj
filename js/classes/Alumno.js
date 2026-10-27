@@ -92,4 +92,28 @@ export class Alumno {
 
     return { total, activos, inactivos, cuotasAlDia };
   }
+  // Calcular la edad actual en base a la fecha de nacimiento
+  calcularEdad() {
+    if (!this.fechaNacimiento) return "N/D";
+    const hoy = new Date();
+    const cumple = new Date(this.fechaNacimiento);
+    let edad = hoy.getFullYear() - cumple.getFullYear();
+    const m = hoy.getMonth() - cumple.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) {
+      edad--;
+    }
+    return edad;
+  }
+
+  // Actualizar datos del alumno
+  actualizarDatos(nuevosDatos) {
+    this.nombre = nuevosDatos.nombre;
+    this.telefono = nuevosDatos.telefono;
+    this.fechaNacimiento = nuevosDatos.fechaNacimiento;
+    this.cinturon = nuevosDatos.cinturon;
+    this.grados = parseInt(nuevosDatos.grados);
+    this.estado = nuevosDatos.estado;
+    this.observaciones = nuevosDatos.observaciones;
+    Alumno.sincronizarStorage();
+  }
 }

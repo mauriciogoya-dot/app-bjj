@@ -368,7 +368,7 @@ function renderizarListaAsistenciasDiarias() {
 }
 
 // ==========================================
-// 6. MODAL DE PERFIL INDIVIDUAL
+// 6. MODAL DE PERFIL INDIVIDUAL Y EDICIÓN
 // ==========================================
 const modalPerfil = document.getElementById("modal-perfil");
 const contenidoPerfil = document.getElementById("contenido-perfil");
@@ -388,59 +388,148 @@ function mostrarPerfilAlumno(id) {
   const totalAsistencias = alumno.obtenerTotalAsistencias(
     Asistencia.asistencias,
   );
+  const edad = alumno.calcularEdad();
 
   contenidoPerfil.innerHTML = `
-        <div class="border-b border-slate-700 pb-3">
-            <h3 class="text-2xl font-bold text-amber-500">${alumno.nombre}</h3>
-            <p class="text-xs text-slate-400">Teléfono: ${alumno.telefono} | F. Nac: ${alumno.fechaNacimiento}</p>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
-                <span class="text-xs text-slate-400 block">Cinturón y Grados</span>
-                <span class="font-bold text-white">${alumno.cinturon} - ${alumno.grados} Grados</span>
+        <div class="border-b border-slate-700 pb-3 flex justify-between items-start">
+            <div>
+                <h3 class="text-2xl font-bold text-amber-500">${alumno.nombre}</h3>
+                <p class="text-xs text-slate-400">📞 ${alumno.telefono} | 📅 Nac: ${alumno.fechaNacimiento} (${edad} años)</p>
             </div>
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
-                <span class="text-xs text-slate-400 block">Asistencias Totales</span>
-                <span class="font-bold text-amber-400 text-lg">${totalAsistencias} clases</span>
-            </div>
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
-                <span class="text-xs text-slate-400 block">Condición Alumno</span>
-                <span class="font-bold text-emerald-400">${alumno.estado}</span>
-            </div>
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
-                <span class="text-xs text-slate-400 block">Estado Cuota (${mesSeleccionado})</span>
-                <span class="font-bold text-blue-400">${estadoCuotaMes}</span>
-            </div>
-        </div>
-
-        <div>
-            <label class="block text-xs text-slate-400 uppercase mb-1">Observaciones / Seminarios / Torneos</label>
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-sm text-slate-300 min-h-[60px]">
-                ${alumno.observaciones || '<span class="italic text-slate-500">Sin observaciones registradas.</span>'}
-            </div>
-        </div>
-
-        <div class="flex justify-end pt-2">
-            <button id="btn-editar-obs" class="bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition">
-                Editar Observaciones
+            <button id="btn-modo-editar" class="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-500/30 text-xs px-3 py-1.5 rounded-lg transition">
+                ✏️ Editar Ficha
             </button>
         </div>
+        
+        <div id="seccion-vista-perfil" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                    <span class="text-xs text-slate-400 block">Cinturón y Grados</span>
+                    <span class="font-bold text-white">${alumno.cinturon} - ${alumno.grados} Grados</span>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                    <span class="text-xs text-slate-400 block">Asistencias Totales</span>
+                    <span class="font-bold text-amber-400 text-lg">${totalAsistencias} clases</span>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                    <span class="text-xs text-slate-400 block">Condición Alumno</span>
+                    <span class="font-bold text-emerald-400">${alumno.estado}</span>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                    <span class="text-xs text-slate-400 block">Estado Cuota (${mesSeleccionado})</span>
+                    <span class="font-bold text-blue-400">${estadoCuotaMes}</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 uppercase mb-1">Observaciones / Seminarios / Torneos</label>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 text-sm text-slate-300 min-h-[60px]">
+                    ${alumno.observaciones || '<span class="italic text-slate-500">Sin observaciones registradas.</span>'}
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULARIO DE EDICIÓN (Oculto por defecto dentro del modal) -->
+        <form id="form-editar-alumno" class="space-y-3 hidden">
+            <h4 class="text-sm font-semibold text-amber-400 border-b border-slate-700 pb-1">Modificar Datos del Alumno</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Nombre y Apellido</label>
+                    <input type="text" id="edit-nombre" value="${alumno.nombre}" required class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Teléfono</label>
+                    <input type="tel" id="edit-telefono" value="${alumno.telefono}" required class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-white">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Fecha de Nacimiento</label>
+                    <input type="date" id="edit-fecha" value="${alumno.fechaNacimiento}" required class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-white">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Condición</label>
+                    <select id="edit-estado" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-white">
+                        <option value="Activo" ${alumno.estado === "Activo" ? "selected" : ""}>Activo</option>
+                        <option value="A prueba" ${alumno.estado === "A prueba" ? "selected" : ""}>A prueba</option>
+                        <option value="Inactivo" ${alumno.estado === "Inactivo" ? "selected" : ""}>Inactivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Cinturón</label>
+                    <select id="edit-cinturon" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-white">
+                        <option value="Blanco" ${alumno.cinturon === "Blanco" ? "selected" : ""}>Blanco</option>
+                        <option value="Azul" ${alumno.cinturon === "Azul" ? "selected" : ""}>Azul</option>
+                        <option value="Morado" ${alumno.cinturon === "Morado" ? "selected" : ""}>Morado</option>
+                        <option value="Marrón" ${alumno.cinturon === "Marrón" ? "selected" : ""}>Marrón</option>
+                        <option value="Negro" ${alumno.cinturon === "Negro" ? "selected" : ""}>Negro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Grados (Tiras)</label>
+                    <select id="edit-grados" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-white">
+                        <option value="0" ${alumno.grados === 0 ? "selected" : ""}>0 Grados</option>
+                        <option value="1" ${alumno.grados === 1 ? "selected" : ""}>1 Grado</option>
+                        <option value="2" ${alumno.grados === 2 ? "selected" : ""}>2 Grados</option>
+                        <option value="3" ${alumno.grados === 3 ? "selected" : ""}>3 Grados</option>
+                        <option value="4" ${alumno.grados === 4 ? "selected" : ""}>4 Grados</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="text-sm">
+                <label class="block text-xs text-slate-400 mb-1">Observaciones</label>
+                <textarea id="edit-observaciones" rows="2" class="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700 rounded text-white">${alumno.observaciones || ""}</textarea>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2">
+                <button type="button" id="btn-cancelar-edit" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded text-xs transition">Cancelar</button>
+                <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-slate-950 font-bold px-4 py-1.5 rounded text-xs transition">Guardar Cambios</button>
+            </div>
+        </form>
     `;
 
   modalPerfil.classList.remove("hidden");
   modalPerfil.classList.add("flex");
 
-  document.getElementById("btn-editar-obs").onclick = () => {
-    const nuevaObs = prompt(
-      "Actualizar observaciones (Torneos, seminarios, defensa personal...):",
-      alumno.observaciones,
-    );
-    if (nuevaObs !== null) {
-      alumno.observaciones = nuevaObs.trim();
-      Alumno.sincronizarStorage();
-      mostrarPerfilAlumno(alumno.id);
-      renderizarNomina();
-    }
+  // Lógica para alternar entre vista y formulario de edición
+  const btnModoEditar = document.getElementById("btn-modo-editar");
+  const seccionVista = document.getElementById("seccion-vista-perfil");
+  const formEditar = document.getElementById("form-editar-alumno");
+  const btnCancelarEdit = document.getElementById("btn-cancelar-edit");
+
+  btnModoEditar.onclick = () => {
+    seccionVista.classList.add("hidden");
+    formEditar.classList.remove("hidden");
+    btnModoEditar.classList.add("hidden");
+  };
+
+  btnCancelarEdit.onclick = () => {
+    formEditar.classList.add("hidden");
+    seccionVista.classList.remove("hidden");
+    btnModoEditar.classList.remove("hidden");
+  };
+
+  formEditar.onsubmit = (e) => {
+    e.preventDefault();
+    const nuevosDatos = {
+      nombre: document.getElementById("edit-nombre").value.trim(),
+      telefono: document.getElementById("edit-telefono").value.trim(),
+      fechaNacimiento: document.getElementById("edit-fecha").value,
+      cinturon: document.getElementById("edit-cinturon").value,
+      grados: document.getElementById("edit-grados").value,
+      estado: document.getElementById("edit-estado").value,
+      observaciones: document.getElementById("edit-observaciones").value.trim(),
+    };
+
+    alumno.actualizarDatos(nuevosDatos);
+    renderizarNomina();
+    actualizarDashboardFinanciero();
+    mostrarPerfilAlumno(alumno.id); // Refrescar el modal con los nuevos datos
   };
 }
