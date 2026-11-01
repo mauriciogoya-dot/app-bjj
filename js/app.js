@@ -2,10 +2,45 @@ import { Alumno } from "./classes/Alumno.js";
 import { Asistencia } from "./classes/Asistencia.js";
 
 // ==========================================
-// 0. INICIALIZACIÓN Y STORAGE
+// 0. INICIALIZACIÓN, CONFIGURACIÓN Y STORAGE
 // ==========================================
 Alumno.cargarStorage();
 Asistencia.cargarStorage();
+
+// Manejo de Configuración de Tarifas Dinámicas
+let configTarifas = JSON.parse(localStorage.getItem("pretorianos_config")) || {
+  valorCuota: 45000,
+  pagoAlumnoCarlos: 15000,
+  serviciosFijosCarlos: 30000,
+};
+
+const inputCfgCuota = document.getElementById("cfg-cuota");
+const inputCfgPagoAlumno = document.getElementById("cfg-pago-alumno");
+const inputCfgServicios = document.getElementById("cfg-servicios");
+
+function cargarConfiguracionEnInputs() {
+  if (inputCfgCuota) {
+    inputCfgCuota.value = configTarifas.valorCuota;
+    inputCfgPagoAlumno.value = configTarifas.pagoAlumnoCarlos;
+    inputCfgServicios.value = configTarifas.serviciosFijosCarlos;
+  }
+}
+cargarConfiguracionEnInputs();
+
+const formConfig = document.getElementById("form-config");
+if (formConfig) {
+  formConfig.addEventListener("submit", (e) => {
+    e.preventDefault();
+    configTarifas.valorCuota = parseFloat(inputCfgCuota.value) || 0;
+    configTarifas.pagoAlumnoCarlos = parseFloat(inputCfgPagoAlumno.value) || 0;
+    configTarifas.serviciosFijosCarlos =
+      parseFloat(inputCfgServicios.value) || 0;
+
+    localStorage.setItem("pretorianos_config", JSON.stringify(configTarifas));
+    actualizarDashboardFinanciero();
+    alert("¡Configuración de tarifas actualizada con éxito!");
+  });
+}
 
 const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
 
@@ -26,7 +61,6 @@ selectorMesNomina.addEventListener("change", (e) => {
 });
 
 actualizarDashboardFinanciero();
-
 // ==========================================
 // 1. NAVEGACIÓN ENTRE PESTAÑAS (TABS)
 // ==========================================
@@ -124,13 +158,17 @@ function actualizarDashboardFinanciero() {
   document.getElementById("stat-cuotas").textContent = stats.cuotasAlDia;
   document.getElementById("stat-inactivos").textContent = stats.inactivos;
 
+  // Alumnos que generan cobro bruto (Activos o a prueba que pagan cuota)
   const alumnosActivos = Alumno.alumnos.filter(
     (a) => a.estado === "Activo" || a.estado === "A prueba",
   );
 
-  const VALOR_CUOTA = 45000;
-  const PAGO_POR_ALUMNO_CARLOS = 15000;
-  const SERVICIOS_FIJOS_CARLOS = 30000;
+  // Alumnos estrictamente "Activos" para el cálculo del compromiso con Carlos
+  const alumnosParaCarlos = Alumno.alumnos.filter((a) => a.estado === "Activo");
+
+  const VALOR_CUOTA = configTarifas.valorCuota;
+  const PAGO_POR_ALUMNO_CARLOS = configTarifas.pagoAlumnoCarlos;
+  const SERVICIOS_FIJOS_CARLOS = configTarifas.serviciosFijosCarlos;
 
   let recaudacionBruta = 0;
   alumnosActivos.forEach((a) => {
@@ -142,7 +180,7 @@ function actualizarDashboardFinanciero() {
     }
   });
 
-  const cantidadPagantesCarlos = alumnosActivos.length;
+  const cantidadPagantesCarlos = alumnosParaCarlos.length;
   const totalCarlos =
     cantidadPagantesCarlos * PAGO_POR_ALUMNO_CARLOS +
     (cantidadPagantesCarlos > 0 ? SERVICIOS_FIJOS_CARLOS : 0);
@@ -155,7 +193,6 @@ function actualizarDashboardFinanciero() {
   document.getElementById("fin-ganancia").textContent =
     `$${gananciaNeta.toLocaleString()}`;
 }
-
 // ==========================================
 // 4. NÓMINA GENERAL Y CAMBIO DE CUOTA MENSUAL
 // ==========================================
