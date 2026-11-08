@@ -158,32 +158,34 @@ function actualizarDashboardFinanciero() {
   document.getElementById("stat-cuotas").textContent = stats.cuotasAlDia;
   document.getElementById("stat-inactivos").textContent = stats.inactivos;
 
-  // Alumnos que generan cobro bruto (Activos o a prueba que pagan cuota)
-  const alumnosActivos = Alumno.alumnos.filter(
-    (a) => a.estado === "Activo" || a.estado === "A prueba",
-  );
-
-  // Alumnos estrictamente "Activos" para el cálculo del compromiso con Carlos
-  const alumnosParaCarlos = Alumno.alumnos.filter((a) => a.estado === "Activo");
+  // Filtrar ÚNICAMENTE alumnos Activos (excluye 'A prueba' e 'Inactivo')
+  const alumnosActivos = Alumno.alumnos.filter((a) => a.estado === "Activo");
 
   const VALOR_CUOTA = configTarifas.valorCuota;
   const PAGO_POR_ALUMNO_CARLOS = configTarifas.pagoAlumnoCarlos;
   const SERVICIOS_FIJOS_CARLOS = configTarifas.serviciosFijosCarlos;
 
   let recaudacionBruta = 0;
+  let comisionCarlos = 0;
+  let hayCuotasCobradas = false;
+
   alumnosActivos.forEach((a) => {
     const estadoCuota = a.obtenerEstadoCuota(mesSeleccionado);
+
     if (estadoCuota === "Al día") {
       recaudacionBruta += VALOR_CUOTA;
+      comisionCarlos += PAGO_POR_ALUMNO_CARLOS;
+      hayCuotasCobradas = true;
     } else if (estadoCuota === "Parcial") {
       recaudacionBruta += VALOR_CUOTA / 2;
+      comisionCarlos += PAGO_POR_ALUMNO_CARLOS / 2;
+      hayCuotasCobradas = true;
     }
   });
 
-  const cantidadPagantesCarlos = alumnosParaCarlos.length;
+  // Carlos cobra servicios fijos si hay alumnos cobrados o actividad en el mes
   const totalCarlos =
-    cantidadPagantesCarlos * PAGO_POR_ALUMNO_CARLOS +
-    (cantidadPagantesCarlos > 0 ? SERVICIOS_FIJOS_CARLOS : 0);
+    comisionCarlos + (hayCuotasCobradas ? SERVICIOS_FIJOS_CARLOS : 0);
   const gananciaNeta = recaudacionBruta - totalCarlos;
 
   document.getElementById("fin-recaudacion").textContent =
