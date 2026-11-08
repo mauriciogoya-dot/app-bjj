@@ -80,17 +80,21 @@ export class Alumno {
     return Alumno.alumnos.find((a) => a.id === id);
   }
 
+  // Alumno.js
   static obtenerEstadisticas(mesAnio) {
     const total = Alumno.alumnos.length;
-    const activos = Alumno.alumnos.filter(
-      (a) => a.estado === "Activo" || a.estado === "A prueba",
+    const activos = Alumno.alumnos.filter((a) => a.estado === "Activo").length;
+    const aPrueba = Alumno.alumnos.filter(
+      (a) => a.estado === "A prueba",
     ).length;
-    const inactivos = total - activos;
+    const inactivos = Alumno.alumnos.filter(
+      (a) => a.estado === "Inactivo",
+    ).length;
     const cuotasAlDia = Alumno.alumnos.filter(
       (a) => a.obtenerEstadoCuota(mesAnio) === "Al día",
     ).length;
 
-    return { total, activos, inactivos, cuotasAlDia };
+    return { total, activos, aPrueba, inactivos, cuotasAlDia };
   }
   // Calcular la edad actual en base a la fecha de nacimiento
   calcularEdad() {

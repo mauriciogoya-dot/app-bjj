@@ -37,7 +37,6 @@
           </p>
         </div>
 
-        <!-- Escudo Derecha (Pretorianos ampliado para tocar el borde) -->
         <!-- Escudo Derecha (Pretorianos) -->
         <div
           class="flex-shrink-0 w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-amber-500 shadow-lg overflow-hidden bg-slate-950 flex items-center justify-center"
@@ -118,18 +117,31 @@
               >0</span
             >
           </div>
+          <!-- index.html (Reemplazar la segunda tarjeta de las estadísticas globales) -->
           <div
-            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
+            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col justify-between"
           >
-            <span
-              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
-              >Activos / A prueba</span
-            >
-            <span
-              id="stat-activos"
-              class="text-3xl font-bold text-emerald-400 mt-2"
-              >0</span
-            >
+            <div>
+              <span
+                class="text-xs font-medium text-slate-400 uppercase tracking-wider"
+              >
+                Alumnos Activos
+              </span>
+              <span
+                id="stat-activos"
+                class="text-3xl font-bold text-emerald-400 mt-2 block"
+              >
+                0
+              </span>
+            </div>
+            <!-- Indicador dinámico: solo se muestra si hay alumnos a prueba -->
+            <div id="stat-prueba-container" class="mt-2 hidden">
+              <span
+                class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20"
+              >
+                <span id="stat-aprueba">0</span> a prueba
+              </span>
+            </div>
           </div>
           <div
             class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"

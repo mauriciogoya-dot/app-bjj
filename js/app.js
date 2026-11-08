@@ -149,45 +149,55 @@ formAlumno.addEventListener("submit", (e) => {
 // ==========================================
 // 3. DASHBOARD Y CALCULADORA FINANCIERA MENSUAL
 // ==========================================
+// app.js - Reemplazar la función actualizarDashboardFinanciero
 function actualizarDashboardFinanciero() {
   const mesSeleccionado = selectorMesFinanzas.value;
   const stats = Alumno.obtenerEstadisticas(mesSeleccionado);
 
+  // Actualizar indicadores numéricos globales
   document.getElementById("stat-total").textContent = stats.total;
   document.getElementById("stat-activos").textContent = stats.activos;
   document.getElementById("stat-cuotas").textContent = stats.cuotasAlDia;
   document.getElementById("stat-inactivos").textContent = stats.inactivos;
 
-  // Filtrar ÚNICAMENTE alumnos Activos (excluye 'A prueba' e 'Inactivo')
-  const alumnosActivos = Alumno.alumnos.filter((a) => a.estado === "Activo");
+  // Lógica condicional para mostrar el badge de alumnos a prueba solo si existen
+  const containerPrueba = document.getElementById("stat-prueba-container");
+  const statAPrueba = document.getElementById("stat-aprueba");
+
+  if (stats.aPrueba > 0) {
+    statAPrueba.textContent = stats.aPrueba;
+    containerPrueba.classList.remove("hidden");
+  } else {
+    containerPrueba.classList.add("hidden");
+  }
 
   const VALOR_CUOTA = configTarifas.valorCuota;
   const PAGO_POR_ALUMNO_CARLOS = configTarifas.pagoAlumnoCarlos;
   const SERVICIOS_FIJOS_CARLOS = configTarifas.serviciosFijosCarlos;
 
+  // 1. RECAUDACIÓN BRUTA: Dinero efectivamente ingresado por cuotas pagadas (Al día / Parcial)
   let recaudacionBruta = 0;
-  let comisionCarlos = 0;
-  let hayCuotasCobradas = false;
-
-  alumnosActivos.forEach((a) => {
-    const estadoCuota = a.obtenerEstadoCuota(mesSeleccionado);
-
-    if (estadoCuota === "Al día") {
-      recaudacionBruta += VALOR_CUOTA;
-      comisionCarlos += PAGO_POR_ALUMNO_CARLOS;
-      hayCuotasCobradas = true;
-    } else if (estadoCuota === "Parcial") {
-      recaudacionBruta += VALOR_CUOTA / 2;
-      comisionCarlos += PAGO_POR_ALUMNO_CARLOS / 2;
-      hayCuotasCobradas = true;
+  Alumno.alumnos.forEach((a) => {
+    if (a.estado === "Activo") {
+      const estadoCuota = a.obtenerEstadoCuota(mesSeleccionado);
+      if (estadoCuota === "Al día") {
+        recaudacionBruta += VALOR_CUOTA;
+      } else if (estadoCuota === "Parcial") {
+        recaudacionBruta += VALOR_CUOTA / 2;
+      }
     }
   });
 
-  // Carlos cobra servicios fijos si hay alumnos cobrados o actividad en el mes
+  // 2. A PAGAR A CARLOS: Compromiso fijo proyectado por el total de alumnos Activos en nómina
+  const cantidadAlumnosActivos = stats.activos;
   const totalCarlos =
-    comisionCarlos + (hayCuotasCobradas ? SERVICIOS_FIJOS_CARLOS : 0);
+    cantidadAlumnosActivos * PAGO_POR_ALUMNO_CARLOS +
+    (cantidadAlumnosActivos > 0 ? SERVICIOS_FIJOS_CARLOS : 0);
+
+  // 3. TU GANANCIA NETA / ESTADO DEL FLUJO DE CAJA
   const gananciaNeta = recaudacionBruta - totalCarlos;
 
+  // Renderizar resultados en el DOM
   document.getElementById("fin-recaudacion").textContent =
     `$${recaudacionBruta.toLocaleString()}`;
   document.getElementById("fin-carlos").textContent =
