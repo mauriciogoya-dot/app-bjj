@@ -71,6 +71,13 @@ export class Alumno {
     return asistenciasGlobales.filter((a) => a.alumnoId === this.id).length;
   }
 
+  // Obtener asistencias filtradas por un mes específico
+  obtenerAsistenciasMensuales(asistenciasGlobales, mesAnio) {
+    return asistenciasGlobales.filter(
+      (a) => a.alumnoId === this.id && a.fecha.startsWith(mesAnio),
+    ).length;
+  }
+
   static eliminar(id) {
     Alumno.alumnos = Alumno.alumnos.filter((a) => a.id !== id);
     Alumno.sincronizarStorage();

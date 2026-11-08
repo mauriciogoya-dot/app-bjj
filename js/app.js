@@ -237,7 +237,15 @@ function renderizarNomina() {
       colorEstado = "bg-slate-500/10 text-slate-400 border border-slate-500/20";
 
     const estadoCuotaMes = a.obtenerEstadoCuota(mesSeleccionado);
+
+    // 1. Obtener asistencias totales históricas
     const totalAsistencias = a.obtenerTotalAsistencias(Asistencia.asistencias);
+
+    // 2. Obtener asistencias del mes seleccionado
+    const asistenciasMes = a.obtenerAsistenciasMensuales(
+      Asistencia.asistencias,
+      mesSeleccionado,
+    );
 
     tr.innerHTML = `
             <td class="py-3 px-3">
@@ -264,8 +272,9 @@ function renderizarNomina() {
                     <option value="Al día" ${estadoCuotaMes === "Al día" ? "selected" : ""}>Al día</option>
                 </select>
             </td>
+            <!-- Columna de asistencias desglosada (Mes / Total histórico) -->
             <td class="py-3 px-3 font-bold text-amber-400">
-                ${totalAsistencias} clases
+                ${asistenciasMes} <span class="text-xs text-slate-400 font-normal">/ ${totalAsistencias} total</span>
             </td>
             <td class="py-3 px-3 text-center space-x-2">
                 <button data-id="${a.id}" class="btn-perfil bg-slate-700 hover:bg-slate-600 text-white text-xs px-2.5 py-1.5 rounded transition" title="Ver Perfil">
