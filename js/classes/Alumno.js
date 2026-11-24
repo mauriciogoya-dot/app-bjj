@@ -20,7 +20,7 @@ export class Alumno {
     this.cinturon = cinturon;
     this.grados = parseInt(grados);
     this.estado = estado; // 'Activo', 'A prueba', 'Inactivo'
-    this.pagos = pagos; // Objeto con formato { 'YYYY-MM': 'Al día' / 'Pendiente' / 'Parcial' }
+    this.pagos = pagos; // { 'YYYY-MM': 'Al día' / 'Pendiente' / 'Parcial' }
     this.observaciones = observaciones;
   }
 
@@ -29,12 +29,10 @@ export class Alumno {
     Alumno.sincronizarStorage();
   }
 
-  // Obtener el estado de la cuota para un mes específico (Ej: '2026-10')
   obtenerEstadoCuota(mesAnio) {
-    return this.pagos[mesAnio] || "Pendiente"; // Si no existe registro, por defecto es Pendiente
+    return this.pagos[mesAnio] || "Pendiente";
   }
 
-  // Actualizar el estado de cuota para un mes específico
   setEstadoCuota(mesAnio, estado) {
     this.pagos[mesAnio] = estado;
     Alumno.sincronizarStorage();
@@ -57,7 +55,7 @@ export class Alumno {
             a.cinturon,
             a.grados,
             a.estado,
-            a.pagos || {}, // Recuperar objeto de pagos o vacío
+            a.pagos || {},
             a.observaciones,
             a.id,
           ),
@@ -71,7 +69,6 @@ export class Alumno {
     return asistenciasGlobales.filter((a) => a.alumnoId === this.id).length;
   }
 
-  // Obtener asistencias filtradas por un mes específico
   obtenerAsistenciasMensuales(asistenciasGlobales, mesAnio) {
     return asistenciasGlobales.filter(
       (a) => a.alumnoId === this.id && a.fecha.startsWith(mesAnio),
@@ -87,27 +84,37 @@ export class Alumno {
     return Alumno.alumnos.find((a) => a.id === id);
   }
 
-  // Alumno.js
   static obtenerEstadisticas(mesAnio) {
     const total = Alumno.alumnos.length;
-    const activos = Alumno.alumnos.filter((a) => a.estado === "Activo").length;
+    const listaActivos = Alumno.alumnos.filter((a) => a.estado === "Activo");
+    const activos = listaActivos.length;
     const aPrueba = Alumno.alumnos.filter(
       (a) => a.estado === "A prueba",
     ).length;
     const inactivos = Alumno.alumnos.filter(
       (a) => a.estado === "Inactivo",
     ).length;
-    const cuotasAlDia = Alumno.alumnos.filter(
+
+    // Calculamos cuotas al día y pendientes específicamente sobre los alumnos Activos
+    const cuotasAlDia = listaActivos.filter(
       (a) => a.obtenerEstadoCuota(mesAnio) === "Al día",
     ).length;
+    const cuotasPendientes = activos - cuotasAlDia;
 
-    return { total, activos, aPrueba, inactivos, cuotasAlDia };
+    return {
+      total,
+      activos,
+      aPrueba,
+      inactivos,
+      cuotasAlDia,
+      cuotasPendientes,
+    };
   }
-  // Calcular la edad actual en base a la fecha de nacimiento
+
   calcularEdad() {
     if (!this.fechaNacimiento) return "N/D";
     const hoy = new Date();
-    const cumple = new Date(this.fechaNacimiento);
+    const cumple = new Date(`${this.fechaNacimiento}T00:00:00`);
     let edad = hoy.getFullYear() - cumple.getFullYear();
     const m = hoy.getMonth() - cumple.getMonth();
     if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) {
@@ -116,7 +123,6 @@ export class Alumno {
     return edad;
   }
 
-  // Actualizar datos del alumno
   actualizarDatos(nuevosDatos) {
     this.nombre = nuevosDatos.nombre;
     this.telefono = nuevosDatos.telefono;

@@ -7,12 +7,15 @@ import { Asistencia } from "./classes/Asistencia.js";
 Alumno.cargarStorage();
 Asistencia.cargarStorage();
 
-// Manejo de Configuración de Tarifas Dinámicas
 let configTarifas = JSON.parse(localStorage.getItem("pretorianos_config")) || {
   valorCuota: 45000,
   pagoAlumnoCarlos: 15000,
   serviciosFijosCarlos: 30000,
 };
+
+// Registro de entregas/pagos realizados a Carlos por mes: { "2026-11": 180000 }
+let pagosRealizadosCarlos =
+  JSON.parse(localStorage.getItem("pretorianos_pagos_carlos")) || {};
 
 const inputCfgCuota = document.getElementById("cfg-cuota");
 const inputCfgPagoAlumno = document.getElementById("cfg-pago-alumno");
@@ -42,10 +45,17 @@ if (formConfig) {
   });
 }
 
-const obtenerMesActual = () => new Date().toISOString().slice(0, 7);
+// Helper de fecha local (evita el desfase UTC después de las 21hs en Argentina)
+const obtenerFechaLocalISO = () => {
+  const hoy = new Date();
+  const offsetMs = hoy.getTimezoneOffset() * 60000;
+  return new Date(hoy.getTime() - offsetMs).toISOString().split("T")[0];
+};
+const obtenerMesActual = () => obtenerFechaLocalISO().slice(0, 7);
 
 const selectorMesFinanzas = document.getElementById("selector-mes-finanzas");
 const selectorMesNomina = document.getElementById("selector-mes-nomina");
+const inputPagadoCarlos = document.getElementById("input-pagado-carlos");
 
 selectorMesFinanzas.value = obtenerMesActual();
 selectorMesNomina.value = obtenerMesActual();
@@ -59,6 +69,20 @@ selectorMesNomina.addEventListener("change", (e) => {
   selectorMesFinanzas.value = e.target.value;
   renderizarNomina();
 });
+
+// Guardar automáticamente el monto entregado a Carlos en el mes seleccionado
+if (inputPagadoCarlos) {
+  inputPagadoCarlos.addEventListener("input", (e) => {
+    const mesSeleccionado = selectorMesFinanzas.value;
+    const montoPagado = parseFloat(e.target.value) || 0;
+    pagosRealizadosCarlos[mesSeleccionado] = montoPagado;
+    localStorage.setItem(
+      "pretorianos_pagos_carlos",
+      JSON.stringify(pagosRealizadosCarlos),
+    );
+    actualizarDashboardFinanciero(false); // false para no pisar el cursor mientras escribes
+  });
+}
 
 actualizarDashboardFinanciero();
 // ==========================================
@@ -149,33 +173,52 @@ formAlumno.addEventListener("submit", (e) => {
 // ==========================================
 // 3. DASHBOARD Y CALCULADORA FINANCIERA MENSUAL
 // ==========================================
-// app.js - Reemplazar la función actualizarDashboardFinanciero
-function actualizarDashboardFinanciero() {
+function actualizarDashboardFinanciero(sincronizarInputCarlos = true) {
   const mesSeleccionado = selectorMesFinanzas.value;
   const stats = Alumno.obtenerEstadisticas(mesSeleccionado);
 
-  // Actualizar indicadores numéricos globales
+  // 1. Actualizar tarjetas de estadísticas principales
   document.getElementById("stat-total").textContent = stats.total;
   document.getElementById("stat-activos").textContent = stats.activos;
   document.getElementById("stat-cuotas").textContent = stats.cuotasAlDia;
-  document.getElementById("stat-inactivos").textContent = stats.inactivos;
 
-  // Lógica condicional para mostrar el badge de alumnos a prueba solo si existen
+  // Sub-indicador: Inactivos
+  const containerInactivos = document.getElementById(
+    "stat-inactivos-container",
+  );
+  if (stats.inactivos > 0) {
+    document.getElementById("stat-inactivos").textContent = stats.inactivos;
+    containerInactivos.classList.remove("hidden");
+  } else {
+    containerInactivos.classList.add("hidden");
+  }
+
+  // Sub-indicador: A prueba
   const containerPrueba = document.getElementById("stat-prueba-container");
-  const statAPrueba = document.getElementById("stat-aprueba");
-
   if (stats.aPrueba > 0) {
-    statAPrueba.textContent = stats.aPrueba;
+    document.getElementById("stat-aprueba").textContent = stats.aPrueba;
     containerPrueba.classList.remove("hidden");
   } else {
     containerPrueba.classList.add("hidden");
+  }
+
+  // Sub-indicador: Pendientes de pago
+  const containerPendientes = document.getElementById(
+    "stat-pendientes-container",
+  );
+  if (stats.cuotasPendientes > 0) {
+    document.getElementById("stat-pendientes").textContent =
+      stats.cuotasPendientes;
+    containerPendientes.classList.remove("hidden");
+  } else {
+    containerPendientes.classList.add("hidden");
   }
 
   const VALOR_CUOTA = configTarifas.valorCuota;
   const PAGO_POR_ALUMNO_CARLOS = configTarifas.pagoAlumnoCarlos;
   const SERVICIOS_FIJOS_CARLOS = configTarifas.serviciosFijosCarlos;
 
-  // 1. RECAUDACIÓN BRUTA: Dinero efectivamente ingresado por cuotas pagadas (Al día / Parcial)
+  // 2. Recaudación Bruta real ingresada
   let recaudacionBruta = 0;
   Alumno.alumnos.forEach((a) => {
     if (a.estado === "Activo") {
@@ -188,22 +231,53 @@ function actualizarDashboardFinanciero() {
     }
   });
 
-  // 2. A PAGAR A CARLOS: Compromiso fijo proyectado por el total de alumnos Activos en nómina
+  // 3. Compromiso total del mes con Carlos (Activos * Comisión + Servicios)
   const cantidadAlumnosActivos = stats.activos;
   const totalCarlos =
     cantidadAlumnosActivos * PAGO_POR_ALUMNO_CARLOS +
     (cantidadAlumnosActivos > 0 ? SERVICIOS_FIJOS_CARLOS : 0);
 
-  // 3. TU GANANCIA NETA / ESTADO DEL FLUJO DE CAJA
+  // 4. Control de lo ya pagado a Carlos y saldo pendiente a regularizar
+  const pagadoCarlos = pagosRealizadosCarlos[mesSeleccionado] || 0;
+  if (sincronizarInputCarlos && inputPagadoCarlos) {
+    inputPagadoCarlos.value = pagadoCarlos > 0 ? pagadoCarlos : "";
+  }
+
+  const saldoPendienteCarlos = totalCarlos - pagadoCarlos;
+  const elPendienteCarlos = document.getElementById("fin-pendiente-carlos");
+
+  if (saldoPendienteCarlos > 0) {
+    elPendienteCarlos.textContent = `$${saldoPendienteCarlos.toLocaleString()}`;
+    elPendienteCarlos.className = "text-sm font-bold text-rose-400";
+  } else if (saldoPendienteCarlos === 0) {
+    elPendienteCarlos.textContent = "$0 (Saldado)";
+    elPendienteCarlos.className = "text-sm font-bold text-emerald-400";
+  } else {
+    // Si por algún motivo pagaste de más respecto a los activos actuales
+    elPendienteCarlos.textContent = `+$${Math.abs(saldoPendienteCarlos).toLocaleString()} a favor`;
+    elPendienteCarlos.className = "text-sm font-bold text-blue-400";
+  }
+
+  // 5. Tu ganancia neta mensual
   const gananciaNeta = recaudacionBruta - totalCarlos;
 
-  // Renderizar resultados en el DOM
+  // Renderizar montos y descripciones dinámicas
   document.getElementById("fin-recaudacion").textContent =
     `$${recaudacionBruta.toLocaleString()}`;
+  document.getElementById("desc-recaudacion").textContent =
+    `Cuota $${VALOR_CUOTA.toLocaleString()} (Parcial $${(VALOR_CUOTA / 2).toLocaleString()})`;
+
   document.getElementById("fin-carlos").textContent =
     `$${totalCarlos.toLocaleString()}`;
-  document.getElementById("fin-ganancia").textContent =
-    `$${gananciaNeta.toLocaleString()}`;
+  document.getElementById("desc-carlos").textContent =
+    `${cantidadAlumnosActivos} act. × $${PAGO_POR_ALUMNO_CARLOS.toLocaleString()} + $${SERVICIOS_FIJOS_CARLOS.toLocaleString()} serv.`;
+
+  const elGanancia = document.getElementById("fin-ganancia");
+  elGanancia.textContent = `$${gananciaNeta.toLocaleString()}`;
+  elGanancia.className =
+    gananciaNeta >= 0
+      ? "text-2xl font-bold text-emerald-400 mt-1"
+      : "text-2xl font-bold text-rose-400 mt-1";
 }
 // ==========================================
 // 4. NÓMINA GENERAL Y CAMBIO DE CUOTA MENSUAL

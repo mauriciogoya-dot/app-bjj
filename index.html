@@ -92,7 +92,8 @@
               Panel Financiero Mensual
             </h2>
             <p class="text-xs text-slate-400">
-              Selecciona el mes para calcular la recaudación y pagos a Carlos.
+              Selecciona el mes para calcular la recaudación, entregas y saldo
+              pendiente a Carlos.
             </p>
           </div>
           <div>
@@ -104,20 +105,33 @@
           </div>
         </div>
 
-        <!-- Tarjetas de Estadísticas Globales -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Tarjetas de Estadísticas Globales (3 Tarjetas con sub-indicadores) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 1. Total Alumnos + Inactivos -->
           <div
-            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
+            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col justify-between"
           >
-            <span
-              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
-              >Total Alumnos</span
-            >
-            <span id="stat-total" class="text-3xl font-bold text-white mt-2"
-              >0</span
-            >
+            <div>
+              <span
+                class="text-xs font-medium text-slate-400 uppercase tracking-wider"
+                >Total Alumnos</span
+              >
+              <span
+                id="stat-total"
+                class="text-3xl font-bold text-white mt-2 block"
+                >0</span
+              >
+            </div>
+            <div id="stat-inactivos-container" class="mt-2 hidden">
+              <span
+                class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-700/70 text-slate-300 border border-slate-600"
+              >
+                <span id="stat-inactivos">0</span> inactivos
+              </span>
+            </div>
           </div>
-          <!-- index.html (Reemplazar la segunda tarjeta de las estadísticas globales) -->
+
+          <!-- 2. Alumnos Activos + A prueba -->
           <div
             class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col justify-between"
           >
@@ -134,7 +148,6 @@
                 0
               </span>
             </div>
-            <!-- Indicador dinámico: solo se muestra si hay alumnos a prueba -->
             <div id="stat-prueba-container" class="mt-2 hidden">
               <span
                 class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20"
@@ -143,29 +156,29 @@
               </span>
             </div>
           </div>
+
+          <!-- 3. Cuotas al Día + Pendientes de pago -->
           <div
-            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
+            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col justify-between"
           >
-            <span
-              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
-              >Cuotas al Día (Mes)</span
-            >
-            <span id="stat-cuotas" class="text-3xl font-bold text-blue-400 mt-2"
-              >0</span
-            >
-          </div>
-          <div
-            class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md flex flex-col"
-          >
-            <span
-              class="text-xs font-medium text-slate-400 uppercase tracking-wider"
-              >Inactivos / Bajas</span
-            >
-            <span
-              id="stat-inactivos"
-              class="text-3xl font-bold text-amber-400 mt-2"
-              >0</span
-            >
+            <div>
+              <span
+                class="text-xs font-medium text-slate-400 uppercase tracking-wider"
+                >Cuotas al Día (Activos)</span
+              >
+              <span
+                id="stat-cuotas"
+                class="text-3xl font-bold text-blue-400 mt-2 block"
+                >0</span
+              >
+            </div>
+            <div id="stat-pendientes-container" class="mt-2 hidden">
+              <span
+                class="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20"
+              >
+                <span id="stat-pendientes">0</span> pendientes de pago
+              </span>
+            </div>
           </div>
         </div>
 
@@ -178,51 +191,111 @@
           >
             Desglose Financiero del Mes Seleccionado
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Recaudación Bruta -->
-            <div class="bg-slate-900 p-5 rounded-lg border border-slate-700">
-              <span class="text-xs text-slate-400 uppercase tracking-wider"
-                >Recaudación Bruta (Cuotas Cobradas)</span
-              >
-              <p
-                id="fin-recaudacion"
-                class="text-2xl font-bold text-white mt-1"
-              >
-                $0
-              </p>
-              <span class="text-xs text-slate-500 mt-2 block"
-                >Basado en cuotas 'Al día' ($45.000) o 'Parcial' ($22.500)</span
-              >
-            </div>
-            <!-- Pago a Carlos (Espacio + Servicios) -->
-            <div class="bg-slate-900 p-5 rounded-lg border border-slate-700">
-              <span class="text-xs text-slate-400 uppercase tracking-wider"
-                >A Pagar a Carlos (Alquiler + Servicios)</span
-              >
-              <p id="fin-carlos" class="text-2xl font-bold text-amber-400 mt-1">
-                $0
-              </p>
-              <span class="text-xs text-slate-500 mt-2 block"
-                >($15.000 por alumno activo + $30.000 servicios fijos)</span
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- 1. Recaudación Bruta -->
+            <div
+              class="bg-slate-900 p-5 rounded-lg border border-slate-700 flex flex-col justify-between"
+            >
+              <div>
+                <span class="text-xs text-slate-400 uppercase tracking-wider"
+                  >Recaudación Bruta</span
+                >
+                <p
+                  id="fin-recaudacion"
+                  class="text-2xl font-bold text-white mt-1"
+                >
+                  $0
+                </p>
+              </div>
+              <span
+                id="desc-recaudacion"
+                class="text-xs text-slate-500 mt-3 block"
+                >Cuotas cobradas al día / parcial</span
               >
             </div>
-            <!-- Tu Ganancia Neta -->
-            <div class="bg-slate-900 p-5 rounded-lg border border-slate-700">
-              <span class="text-xs text-slate-400 uppercase tracking-wider"
-                >Tu Ganancia Neta Mensual</span
+
+            <!-- 2. Total Compromiso con Carlos -->
+            <div
+              class="bg-slate-900 p-5 rounded-lg border border-slate-700 flex flex-col justify-between"
+            >
+              <div>
+                <span class="text-xs text-slate-400 uppercase tracking-wider"
+                  >Total Mes a Carlos</span
+                >
+                <p
+                  id="fin-carlos"
+                  class="text-2xl font-bold text-amber-400 mt-1"
+                >
+                  $0
+                </p>
+              </div>
+              <span id="desc-carlos" class="text-xs text-slate-500 mt-3 block"
+                >Según activos + servicios fijos</span
               >
-              <p
-                id="fin-ganancia"
-                class="text-2xl font-bold text-emerald-400 mt-1"
+            </div>
+
+            <!-- 3. Control de Pago al 10 y Saldo Pendiente a Carlos -->
+            <div
+              class="bg-slate-900 p-5 rounded-lg border border-amber-500/40 flex flex-col justify-between"
+            >
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <label
+                    for="input-pagado-carlos"
+                    class="text-xs text-slate-400 uppercase tracking-wider"
+                  >
+                    Pagado a Carlos (al 10)
+                  </label>
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-slate-400 font-bold">$</span>
+                  <input
+                    type="number"
+                    id="input-pagado-carlos"
+                    min="0"
+                    step="500"
+                    placeholder="0"
+                    class="w-full px-2.5 py-1 bg-slate-800 border border-slate-600 rounded text-white font-bold text-lg focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div
+                class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between"
               >
-                $0
-              </p>
-              <span class="text-xs text-slate-500 mt-2 block"
-                >Recaudación real menos compromisos con Carlos</span
+                <span class="text-xs text-slate-400">Resta saldar:</span>
+                <span
+                  id="fin-pendiente-carlos"
+                  class="text-sm font-bold text-rose-400"
+                >
+                  $0
+                </span>
+              </div>
+            </div>
+
+            <!-- 4. Tu Ganancia Neta -->
+            <div
+              class="bg-slate-900 p-5 rounded-lg border border-slate-700 flex flex-col justify-between"
+            >
+              <div>
+                <span class="text-xs text-slate-400 uppercase tracking-wider"
+                  >Tu Ganancia Neta Mes</span
+                >
+                <p
+                  id="fin-ganancia"
+                  class="text-2xl font-bold text-emerald-400 mt-1"
+                >
+                  $0
+                </p>
+              </div>
+              <span class="text-xs text-slate-500 mt-3 block"
+                >Recaudación real menos total del mes a Carlos</span
               >
             </div>
           </div>
         </div>
+
         <!-- Panel de Configuración de Tarifas y Acuerdos -->
         <div
           class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md"
@@ -280,7 +353,6 @@
           </form>
         </div>
       </section>
-
       <!-- ========================================== -->
       <!-- VISTA 2: INSCRIPCIÓN DE ALUMNOS           -->
       <!-- ========================================== -->
